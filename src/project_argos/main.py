@@ -22,7 +22,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         
         #Default window params
-        self.setWindowTitle("Project Argos ")
+        self.setWindowTitle("Project Argos")
         self.resize(1280, 720)
 
         # -------------------------
@@ -41,15 +41,15 @@ class MainWindow(QMainWindow):
 
             #subwidgets 
         sidebar_title = QLabel("Sidebar")
-        library_button = QPushButton("Library")
-        timeline_button = QPushButton("Timeline")
-        statistics_button = QPushButton("Statistics")
+        self.library_button = QPushButton("Library")
+        self.timeline_button = QPushButton("Timeline")
+        self.statistics_button = QPushButton("Statistics")
 
             #add subwidgets to layout, by the order we want
         sidebar_layout.addWidget(sidebar_title)
-        sidebar_layout.addWidget(library_button)
-        sidebar_layout.addWidget(timeline_button)
-        sidebar_layout.addWidget(statistics_button)
+        sidebar_layout.addWidget(self.library_button)
+        sidebar_layout.addWidget(self.timeline_button)
+        sidebar_layout.addWidget(self.statistics_button)
         sidebar_layout.addStretch() 
         ### A stretch basically means not spreading the widgets across the entire layout, but letting
         ### it have space under
@@ -57,35 +57,73 @@ class MainWindow(QMainWindow):
             #add layout to QWidget
         sidebar.setLayout(sidebar_layout)
 
-
-        # -------------------------
-        # Main content
-        # -------------------------
-            # Now we repeat the same process as for the sidebar, but for Main Content part
         
-        content = QWidget()
+        # -------------------------
+        # Pages
+        # -------------------------
+            # Here we will implement the stacked widgets (pages) for the sidebar
 
-        content_layout = QVBoxLayout()
+            # LIBRARY #
+        self.library_page = QWidget()
+        library_layout = QVBoxLayout()
 
-        title = QLabel("Project Argos")
-        description = QLabel("Your personal media library and tracker")
+        library_title = QLabel("Library")
+        library_description = QLabel("The media library will go here")
 
-        content_layout.addWidget(title)
-        content_layout.addWidget(description)
-        content_layout.addStretch()
+        library_layout.addWidget(library_title)
+        library_layout.addWidget(library_description)
+        library_layout.addStretch()
 
-        content.setLayout(content_layout)
+        self.library_page.setLayout(library_layout)
+
+            # TIME LINE #
+        self.timeline_page = QWidget()
+        timeline_layout = QVBoxLayout()
+
+        timeline_title = QLabel("Timeline")
+        timeline_description = QLabel("The timeline will go here")
+
+        timeline_layout.addWidget(timeline_title)
+        timeline_layout.addWidget(timeline_description)
+        timeline_layout.addStretch()
+
+        self.timeline_page.setLayout(timeline_layout)
+
+
+            # STATISTICS #
+        self.statistics_page = QWidget()
+        statistics_layout = QVBoxLayout()
+
+        statistics_title = QLabel("statistics")
+        statistics_description = QLabel("The statistics will go here")
+
+        statistics_layout.addWidget(statistics_title)
+        statistics_layout.addWidget(statistics_description)
+        statistics_layout.addStretch()
+
+        self.statistics_page.setLayout(statistics_layout)
+
+        # -------------------------
+        # Stack the pages
+        # -------------------------
+
+        self.pages = QStackedWidget()
+
+        self.pages.addWidget(self.library_page)
+        self.pages.addWidget(self.timeline_page)
+        self.pages.addWidget(self.statistics_page)
 
 
         # -------------------------
-        # Put sidebar + content
-        # into the main layout
+        # Main layout
         # -------------------------
-            # The sidebar and main_content widgets are still, well, widgets, so
-            # now we insert them inside the originao main app layout.
+            # Now we add to the main layout the pages widget, which itself includes the other
+            # pages as "sub widgets".
+            # We will have the sidebar on the left and the pages on the right, so QHBoxLayout()
 
+        main_layout = QHBoxLayout()
         main_layout.addWidget(sidebar)
-        main_layout.addWidget(content)
+        main_layout.addWidget(self.pages)
 
         # -------------------------
         # Put the main layout
@@ -98,8 +136,23 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(central_widget)
 
 
-    def on_button_clicked(self):
-        self.message_label.setText("Button clicked! :) Good boy")
+        # -------------------------
+        # Button connections
+        # -------------------------
+            # Now we connect buttons to their respective functions, which are created afterwards
+        
+        self.library_button.clicked.connect(self.show_library)
+        self.timeline_button.clicked.connect(self.show_timeline)
+        self.statistics_button.clicked.connect(self.show_statistics)
+
+
+
+    def show_library(self):
+        self.pages.setCurrentWidget(self.library_page)
+    def show_timeline(self):
+        self.pages.setCurrentWidget(self.timeline_page)
+    def show_statistics(self):
+        self.pages.setCurrentWidget(self.statistics_page)
 
 
 
