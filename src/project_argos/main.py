@@ -13,7 +13,7 @@ def main():
 
     #creates a basic widget and sets up the base "params"
     window = QWidget()
-    window.setWindowTitle("Project Argos")
+    window.setWindowTitle("Project Argos (test dev branch)")
     window.resize(1280, 720)
     window.show()
 
