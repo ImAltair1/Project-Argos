@@ -44,6 +44,8 @@ class MainWindow(QMainWindow):
         self.library_button = QPushButton("Library")
         self.timeline_button = QPushButton("Timeline")
         self.statistics_button = QPushButton("Statistics")
+        self.settings_button = QPushButton("Settings")
+
 
             #add subwidgets to layout, by the order we want
         sidebar_layout.addWidget(sidebar_title)
@@ -51,6 +53,7 @@ class MainWindow(QMainWindow):
         sidebar_layout.addWidget(self.timeline_button)
         sidebar_layout.addWidget(self.statistics_button)
         sidebar_layout.addStretch() 
+        sidebar_layout.addWidget(self.settings_button)
         ### A stretch basically means not spreading the widgets across the entire layout, but letting
         ### it have space under
 
@@ -62,6 +65,7 @@ class MainWindow(QMainWindow):
         # Pages
         # -------------------------
             # Here we will implement the stacked widgets (pages) for the sidebar
+            
 
             # LIBRARY #
         self.library_page = QWidget()
@@ -94,7 +98,7 @@ class MainWindow(QMainWindow):
         self.statistics_page = QWidget()
         statistics_layout = QVBoxLayout()
 
-        statistics_title = QLabel("statistics")
+        statistics_title = QLabel("Statistics")
         statistics_description = QLabel("The statistics will go here")
 
         statistics_layout.addWidget(statistics_title)
@@ -102,6 +106,23 @@ class MainWindow(QMainWindow):
         statistics_layout.addStretch()
 
         self.statistics_page.setLayout(statistics_layout)
+
+            # SETTINGS #
+        self.settings_page = QWidget()
+        settings_layout = QVBoxLayout()
+
+        settings_title = QLabel("Settings")
+        settings_description = QLabel("The settings will go here")
+
+        settings_layout.addWidget(settings_title)
+        settings_layout.addWidget(settings_description)
+        settings_layout.addStretch()
+
+        self.settings_page.setLayout(settings_layout)    
+
+
+            # If adding a new page DONT FORGET TO ADD NEW BUTTON
+
 
         # -------------------------
         # Stack the pages
@@ -112,7 +133,7 @@ class MainWindow(QMainWindow):
         self.pages.addWidget(self.library_page)
         self.pages.addWidget(self.timeline_page)
         self.pages.addWidget(self.statistics_page)
-
+        self.pages.addWidget(self.settings_page)
 
         # -------------------------
         # Main layout
@@ -144,6 +165,7 @@ class MainWindow(QMainWindow):
         self.library_button.clicked.connect(self.show_library)
         self.timeline_button.clicked.connect(self.show_timeline)
         self.statistics_button.clicked.connect(self.show_statistics)
+        self.settings_button.clicked.connect(self.show_settings)
 
 
 
@@ -153,6 +175,8 @@ class MainWindow(QMainWindow):
         self.pages.setCurrentWidget(self.timeline_page)
     def show_statistics(self):
         self.pages.setCurrentWidget(self.statistics_page)
+    def show_settings(self):
+        self.pages.setCurrentWidget(self.settings_page)
 
 
 
