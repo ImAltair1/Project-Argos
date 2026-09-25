@@ -1,7 +1,7 @@
 
 from PySide6.QtCore import QElapsedTimer
 import sys
-
+from datetime import datetime
 from PySide6.QtWidgets import (
     QApplication,#manages the app itself
     QLabel,
@@ -12,6 +12,12 @@ from PySide6.QtWidgets import (
     QWidget, #basic Qt widget that can act as a simple window
     QStackedWidget,
 )
+
+## vvvvvvv Imports  
+from project_argos.models.media_entry import MediaEntry
+from project_argos.models.game_entry import GameEntry
+from project_argos.models.game_copy import GameCopy
+from project_argos.models.game_session import GameSession
 
 
 # creates a class representing our app window
@@ -40,7 +46,7 @@ class MainWindow(QMainWindow):
         sidebar_layout = QVBoxLayout()
 
             #subwidgets 
-        sidebar_title = QLabel("Sidebar")
+        sidebar_title = QLabel("ARGOS ICON")
         self.library_button = QPushButton("Library")
         self.timeline_button = QPushButton("Timeline")
         self.statistics_button = QPushButton("Statistics")
@@ -182,6 +188,53 @@ class MainWindow(QMainWindow):
 
 # main app setup
 def main():
+
+    ### temporary
+    game = GameEntry("Persona 5 Royal")
+    print(game)
+    print(repr(game))
+
+
+    copy1 = GameCopy("PS4", "Physical", "Owned")
+    copy2 = GameCopy("Switch", "Digital", "Owned")
+    game.add_copy(copy1)
+    game.add_copy(copy2)
+    print(game.copies) ## uses repr
+    print(game.copies[0]) ##uses str
+    
+    
+    game.alternative_titles.append("P5R")
+    game.hours_played = 12.5
+    print(game.alternative_titles)
+    print(game.hours_played)
+
+
+    session_copy1 = GameSession(
+        datetime(2026, 9, 25, 19, 0), datetime(2026, 9, 25, 21, 30),
+        copy1,
+    )
+    session_copy2 = GameSession(
+        datetime(2026, 9, 26, 19, 0), datetime(2026, 9, 26, 22, 30),
+        copy1,
+    )
+    print(f"{session_copy1.duration_hours()}h")
+    print(f"{session_copy2.duration_hours()}h")
+    
+
+    game.add_session(session_copy1)
+    game.add_session(session_copy2)
+    print(game.sessions)
+    print(game.total_session_hours())
+    
+    
+    print(game.id)
+    
+    existing_id = "12345-example-id"
+    game2 = GameEntry("Persona 4 Golden", existing_id)
+    print(game2.id)
+    ### temporary
+
+
     #creates the QApplication obj
     app = QApplication(sys.argv) 
 
