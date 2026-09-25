@@ -13,6 +13,8 @@ from PySide6.QtWidgets import (
     QStackedWidget,
 )
 
+## vvvvvvv IMPORT MEDIAENTRY CLASS FOR TESTING 
+from project_argos.models.media_entry import MediaEntry
 
 # creates a class representing our app window
 ## We will gradually use classes to represent meaningful parts of Argos, like 
@@ -40,7 +42,7 @@ class MainWindow(QMainWindow):
         sidebar_layout = QVBoxLayout()
 
             #subwidgets 
-        sidebar_title = QLabel("Sidebar")
+        sidebar_title = QLabel("ARGOS ICON")
         self.library_button = QPushButton("Library")
         self.timeline_button = QPushButton("Timeline")
         self.statistics_button = QPushButton("Statistics")
@@ -182,6 +184,24 @@ class MainWindow(QMainWindow):
 
 # main app setup
 def main():
+
+    ### temporary
+    entry = MediaEntry("Persona 5 Royal", "game")
+    
+
+    print(entry.title)
+    print(entry.media_type)
+    
+    print(entry)
+    print(repr(entry))
+    print([entry])
+
+    entry.alternative_titles.append("P5R")
+    entry.alternative_titles.append("Persona 5: The Royal")
+    print(repr(entry))
+    ### temporary
+
+
     #creates the QApplication obj
     app = QApplication(sys.argv) 
 
