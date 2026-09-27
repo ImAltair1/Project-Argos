@@ -2,18 +2,23 @@
 from pathlib import Path
 
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import (
     QFrame,
     QLabel,
     QVBoxLayout,
-    QWidget,
 )
 
 from project_argos.models.media_entry import MediaEntry
 
 class MediaCard(QFrame):
+    # We are creating our own signal here
+    # This means "ths widget has a signal called "entry selected" that can carry a Python obj.
+    # Used in the mousepressedevent function
+    entry_selected = Signal(object)
+
+
     #We will need to give it an object with MediaEntry class, so that it has all the information
     # it needs to display what we will want it to display.
     def __init__(self, entry: MediaEntry):
@@ -21,14 +26,15 @@ class MediaCard(QFrame):
 
         self.entry = entry
 
+        #Visual change when the cursor is above a MediaEntry - just to indicate its clickable
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+
         layout = QVBoxLayout() #vertical layout inside this widget
 
         # Artwork
         self.artwork = QLabel("Artwork") 
         self.artwork.setAlignment(Qt.AlignmentFlag.AlignCenter) #new things, seems to just be to align it in the center of the frame
-        
-        
-        #self.artwork.setFixedSize(150,210) #min height for the artwork
+        self.artwork.setMinimumHeight(180) #min height for the artwork
         
         self.display_artwork()
 
@@ -48,7 +54,7 @@ class MediaCard(QFrame):
         
         self.setLayout(layout)
 
-        # After setting the layout, lets improve some of the basic visuals
+        # After setting the layout, improve some of the basic visuals
         self.setFrameShape(QFrame.Shape.StyledPanel)
 
 
@@ -78,3 +84,13 @@ class MediaCard(QFrame):
 
         self.artwork.setPixmap(scaled_pixmap)
         self.artwork.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+
+    # method that Qt calls when theuser clicks on a media card -» it emits a single, sending the MediaEntry 
+    # in this card
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            #emit this signal, and send the MediaEntry that belongs to this card along with it
+            self.entry_selected.emit(self.entry) 
+
+        super().mousePressEvent(event)

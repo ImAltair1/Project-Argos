@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
 
 from project_argos.models.game_entry import GameEntry
 from project_argos.ui.library_view import LibraryView
-
+from project_argos.ui.entry_details_view import EntryDetailsView
 
 # creates a class representing our app window
 ## We will gradually use classes to represent meaningful parts of Argos, like 
@@ -24,6 +24,8 @@ class MainWindow(QMainWindow):
 
         game_p5r = GameEntry("Persona 5 Royal")
         game_p5r.cover_art = "test_assets/p5r_test_1.png"
+        game_p5r.add_alternative_title("P5R")
+        game_p5r.add_alternative_title("P5S")
 
         ## Test data for LibraryView
         self.library_entries = [
@@ -37,8 +39,16 @@ class MainWindow(QMainWindow):
             GameEntry("Hades"),
         ]
 
-
+        print(game_p5r.alternative_titles)
+        print(game_p5r.has_alternative_title("P5R"))
+        print(game_p5r.has_alternative_title("E33"))
         
+        game_p5r.remove_alternative_title("P5S")
+        game_p5r.remove_alternative_title("E33")
+        print(game_p5r.alternative_titles)
+
+        print(game_p5r.alt_title_count())
+
         #Default window params
         self.setWindowTitle("Project Argos")
         self.resize(1280, 720)
@@ -89,7 +99,12 @@ class MainWindow(QMainWindow):
         self.library_page = LibraryView(self.library_entries)
         # important line, we are using the LibraryView class from library_view.py
         # to create a library with the temporary date we created earlier.
-        # 
+
+            # Details view #
+        self.entry_details_page = EntryDetailsView()
+
+
+
 
             # TIME LINE #
         self.timeline_page = QWidget()
@@ -145,6 +160,7 @@ class MainWindow(QMainWindow):
         self.pages.addWidget(self.timeline_page)
         self.pages.addWidget(self.statistics_page)
         self.pages.addWidget(self.settings_page)
+        self.pages.addWidget(self.entry_details_page)
 
         # -------------------------
         # Main layout
@@ -178,7 +194,10 @@ class MainWindow(QMainWindow):
         self.statistics_button.clicked.connect(self.show_statistics)
         self.settings_button.clicked.connect(self.show_settings)
 
-
+        # entry_selected -» show_entry function on bottom
+        self.library_page.entry_selected.connect(self.show_entry)
+        # inside entry, if back -» show library view function on bottom
+        self.entry_details_page.back_requested.connect(self.show_library)
         
 
 
@@ -192,6 +211,13 @@ class MainWindow(QMainWindow):
     def show_settings(self):
         self.pages.setCurrentWidget(self.settings_page)
 
+
+    def show_entry(self, entry):
+        self.entry_details_page.set_entry(entry)
+        self.pages.setCurrentWidget(self.entry_details_page)
+
+    def show_library(self):
+        self.pages.setCurrentWidget(self.library_page)
 
 
     # ### temporary

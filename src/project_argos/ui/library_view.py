@@ -1,7 +1,7 @@
 
 from PySide6.QtGui import QWindow
 from PySide6.QtWidgets import QListWidget
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QGridLayout,
     QScrollArea,
@@ -22,7 +22,8 @@ from project_argos.ui.media_card import MediaCard
 #this library view extends the QWidget class, so we'll be eventually
 # creating our own "widget"
 class LibraryView(QWidget):
-    
+    entry_selected = Signal(object)
+
     # we give this widge the entries we have (MediaEntry)
     def __init__(self, entries):
         super().__init__()
@@ -70,8 +71,6 @@ class LibraryView(QWidget):
         # Have the grid widget be scrollable?
         self.scroll_area.setWidget(self.grid_widget)
 
-
-
         # -------------------------
         # Main layout
         # -------------------------
@@ -87,6 +86,7 @@ class LibraryView(QWidget):
         self.clear_grid()
         self.display_grid()
 
+
     def display_grid(self):
 
         columns = 6
@@ -96,6 +96,9 @@ class LibraryView(QWidget):
             column = index % columns
 
             card = MediaCard(entry)
+
+            #when this card says an entry was selected, emit LibraryView entry_selected signal with the same obj
+            card.entry_selected.connect(self.entry_selected.emit) # MediaCard -entry_selected-»LibView-»MainWindow
 
             self.grid_layout.addWidget(
                 card,
