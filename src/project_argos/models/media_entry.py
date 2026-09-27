@@ -32,6 +32,7 @@ class MediaEntry:
                 # which, for example, would mean all objects would have the same list - if we add P5R to entry1, entry2 would also have it added aswell
                 # self.something = belongs to this specific OBJECT / ClassName.something = belongs to the class itself, to ALL objects
         self.alternative_titles = [] 
+        self.cover_art = None # not in the obligatory params since it may not have one
 
     ## repr is a special method for debugging and inspecting
     def __repr__(self): #how a print of this a MediaEntry object should look like

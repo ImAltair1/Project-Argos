@@ -1,6 +1,7 @@
 
+from PySide6.QtGui import QWindow
 from PySide6.QtWidgets import QListWidget
-from PySide6.QtCore import QLibrary
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QGridLayout,
     QScrollArea,
@@ -26,7 +27,13 @@ class LibraryView(QWidget):
     def __init__(self, entries):
         super().__init__()
 
+
         self.entries = entries
+
+
+        # -------------------------
+        # Scroll area
+        # -------------------------
 
         #basically saying that this library view widget can be scrollable 
         self.scroll_area = QScrollArea()
@@ -43,7 +50,10 @@ class LibraryView(QWidget):
                         # rather than trying to put a QGridLayout directly into the scrollarea
                         # this is the same idea as central_widget and QVBoxLayout
 
-        # Set the layout as a Grid ?
+
+        # -------------------------
+        # Grid
+        # -------------------------
         self.grid_widget = QWidget()
         self.grid_layout = QGridLayout()
 
@@ -60,7 +70,11 @@ class LibraryView(QWidget):
         # Have the grid widget be scrollable?
         self.scroll_area.setWidget(self.grid_widget)
 
-        ### 
+
+
+        # -------------------------
+        # Main layout
+        # -------------------------
         layout = QVBoxLayout() #its a vertical layout
         layout.addWidget(self.scroll_area)
 
@@ -69,24 +83,26 @@ class LibraryView(QWidget):
         self.display_entries() #we display the entries, per the function under
 
 
-    def display_entries(self): 
-    #seperate from the rest for future multiple view mods
-    # so we have a if view-mode = grid then display_grid, but if a different one display_list :p
-        self.clear_grid() # clear grid
-        self.display_grid() # populate grid
+    def display_entries(self):
+        self.clear_grid()
+        self.display_grid()
 
     def display_grid(self):
 
-        columns = 6 # will be made to adjust to window size later
-        
+        columns = 6
+
         for index, entry in enumerate(self.entries):
             row = index // columns
             column = index % columns
 
             card = MediaCard(entry)
 
-            self.grid_layout.addWidget(card, row, column) 
-            # i guess we add to the grid the card object, and in the row and column given?
+            self.grid_layout.addWidget(
+                card,
+                row,
+                column,
+                alignment=Qt.AlignmentFlag.AlignTop,
+            )
 
 
     # keeps removing items until layout is empty
@@ -97,3 +113,4 @@ class LibraryView(QWidget):
             widget = item.widget() #check is the item contains a widget
             if widget is not None: # and if so, tells Qt to delete it
                 widget.deleteLater()
+

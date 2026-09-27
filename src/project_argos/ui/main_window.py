@@ -22,10 +22,12 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        game_p5r = GameEntry("Persona 5 Royal")
+        game_p5r.cover_art = "test_assets/p5r_test_1.png"
 
         ## Test data for LibraryView
         self.library_entries = [
-            GameEntry("Persona 5 Royal"),
+            game_p5r,
             GameEntry("Clair Obscur: Expedition 33"),
             GameEntry("Bastion"),
             GameEntry("Persona 3 Reload"),
