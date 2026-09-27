@@ -24,15 +24,13 @@ class MediaEntry:
                 ): 
         
         self.id = entry_id if entry_id is not None else str(uuid4())
-
         self.title = title
         self.media_type = media_type
-
-        # important python concept = storing a collection of data inside an object
-        # this is in __init__ so that every time we create a new MediaEntry, each new object has its seperate alt_titles list
-        # if we put outsode the __init__ method, right above the "def __init__" line, it would become a class attr, which is different from a instance attr
-        # which, for example, would mean all objects would have the same list - if we add P5R to entry1, entry2 would also have it added aswell
-        # self.something = belongs to this specific OBJECT / ClassName.something = belongs to the class itself, to ALL objects
+                # important python concept = storing a collection of data inside an object
+                # this is in __init__ so that every time we create a new MediaEntry, each new object has its seperate alt_titles list
+                # if we put outsode the __init__ method, right above the "def __init__" line, it would become a class attr, which is different from a instance attr
+                # which, for example, would mean all objects would have the same list - if we add P5R to entry1, entry2 would also have it added aswell
+                # self.something = belongs to this specific OBJECT / ClassName.something = belongs to the class itself, to ALL objects
         self.alternative_titles = [] 
 
     ## repr is a special method for debugging and inspecting

@@ -2,7 +2,6 @@ from PySide6.QtCore import QElapsedTimer
 import sys
 from datetime import datetime
 from PySide6.QtWidgets import (
-    QApplication,#manages the app itself
     QLabel,
     QMainWindow,#main window for apps
     QPushButton,
@@ -12,6 +11,9 @@ from PySide6.QtWidgets import (
     QStackedWidget,
 )
 
+from project_argos.models.game_entry import GameEntry
+from project_argos.ui.library_view import LibraryView
+
 
 # creates a class representing our app window
 ## We will gradually use classes to represent meaningful parts of Argos, like 
@@ -19,6 +21,21 @@ from PySide6.QtWidgets import (
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+
+
+        ## Test data for LibraryView
+        self.library_entries = [
+            GameEntry("Persona 5 Royal"),
+            GameEntry("Clair Obscur: Expedition 33"),
+            GameEntry("Bastion"),
+            GameEntry("Persona 3 Reload"),
+            GameEntry("Fire Emblem"),
+            GameEntry("The World Ends with You"),
+            GameEntry("NieR:Automata"),
+            GameEntry("Hades"),
+        ]
+
+
         
         #Default window params
         self.setWindowTitle("Project Argos")
@@ -67,17 +84,10 @@ class MainWindow(QMainWindow):
             
 
             # LIBRARY #
-        self.library_page = QWidget()
-        library_layout = QVBoxLayout()
-
-        library_title = QLabel("Library")
-        library_description = QLabel("The media library will go here")
-
-        library_layout.addWidget(library_title)
-        library_layout.addWidget(library_description)
-        library_layout.addStretch()
-
-        self.library_page.setLayout(library_layout)
+        self.library_page = LibraryView(self.library_entries)
+        # important line, we are using the LibraryView class from library_view.py
+        # to create a library with the temporary date we created earlier.
+        # 
 
             # TIME LINE #
         self.timeline_page = QWidget()
@@ -165,6 +175,9 @@ class MainWindow(QMainWindow):
         self.timeline_button.clicked.connect(self.show_timeline)
         self.statistics_button.clicked.connect(self.show_statistics)
         self.settings_button.clicked.connect(self.show_settings)
+
+
+        
 
 
 
