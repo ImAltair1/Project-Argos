@@ -1,9 +1,11 @@
 from PySide6.QtCore import Signal, Qt
+
 from PySide6.QtWidgets import (
     QLabel,
     QPushButton,
     QVBoxLayout,
-    QWidget,
+    QWidget, 
+    QLineEdit
 )
 
 from project_argos.models.media_entry import MediaEntry
@@ -35,8 +37,14 @@ class EntryDetailsView(QWidget):
         self.categories_label = QLabel()
         
 
+        self.custom_tags_input = QLineEdit()
+        self.custom_tags_input.hide()
+        self.add_custom_tag_button = QPushButton("Add custom tag")
+        self.add_custom_tag_button.clicked.connect(self.add_custom_tag)
         self.custom_tags_label = QLabel()
         
+        self.custom_tags_input.hide()
+        self.add_custom_tag_button.hide()
 
         layout.addWidget(self.back_button)
 
@@ -51,7 +59,10 @@ class EntryDetailsView(QWidget):
         
 
         layout.addWidget(self.custom_tags_label)
-        
+        layout.addWidget(self.custom_tags_input)
+        layout.addWidget(self.add_custom_tag_button)
+
+
         layout.addStretch()
 
         self.setLayout(layout)
@@ -87,6 +98,17 @@ class EntryDetailsView(QWidget):
             self.category_selector.show()
             self.edit_categories_button.setText("Done!")
 
+    def add_custom_tag(self):
+        tag = self.custom_tags_input.text().strip()
+        if not tag:
+            return
+
+        self.entry.add_custom_tag(tag)
+        self.custom_tags_input.clear()
+        self.update_custom_tags_label()
+
+
+
     # Sets the text that actually shows up in the entry page
     def set_entry(self, entry: MediaEntry):
         self.entry = entry
@@ -115,4 +137,12 @@ class EntryDetailsView(QWidget):
         else:
             self.categories_label.setText(
                 f"Categories: {', '.join(self.entry.categories)}"
+            )
+    
+    def update_custom_tags_label(self):
+        if not self.entry.custom_tags:
+            self.custom_tags_label.setText("No custom tags.")
+        else:
+            self.custom_tags_label.setText(
+                f"Custom tags: {', '.join(self.entry.custom_tags)}"
             )

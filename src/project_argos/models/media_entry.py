@@ -35,7 +35,6 @@ class MediaEntry:
 
 
 
-
     ## repr is a special method for debugging and inspecting
     def __repr__(self): #how a print of this a MediaEntry object should look like
         return (
@@ -93,9 +92,6 @@ class MediaEntry:
     def add_custom_tag(self, custom_tag: str):
         if custom_tag not in self.custom_tags:
             self.custom_tags.append(custom_tag)
-            return True
-        else:
-            return False
 
     def has_custom_tag(self, custom_tag: str):
         return custom_tag in self.custom_tags
