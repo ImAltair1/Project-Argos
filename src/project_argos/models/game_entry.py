@@ -29,23 +29,7 @@ class GameEntry(MediaEntry):
         return sum(session.duration_hours() for session in self.sessions)
 
 
-    ### practice functions (idk if it will be kept or not, depends)
-    def add_alternative_title(self, alt_title: str):
-        self.alternative_titles.append(alt_title)
-
-    def has_alternative_title(self, alt_title: str):
-        return alt_title in self.alternative_titles
-
-    def remove_alternative_title(self, alt_title: str):
-        if alt_title in self.alternative_titles:
-            self.alternative_titles.remove(alt_title)
-            print(f'Removed "{alt_title}" from list.')
-        else:
-            print('Alternative title doesnt exist')
-            return
-
-    def alt_title_count(self):
-        return len(self.alternative_titles)
+   
 
 
 

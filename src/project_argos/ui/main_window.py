@@ -27,6 +27,13 @@ class MainWindow(QMainWindow):
         game_p5r.add_alternative_title("P5R")
         game_p5r.add_alternative_title("P5S")
 
+        game_p5r.add_category("JRPG")
+        #game_p5r.add_category("JRPG")
+        print(game_p5r.categories)
+        game_p5r.add_custom_tag("Persona series")
+        print(game_p5r.custom_tags)
+
+
         ## Test data for LibraryView
         self.library_entries = [
             game_p5r,

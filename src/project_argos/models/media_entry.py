@@ -26,13 +26,14 @@ class MediaEntry:
         self.id = entry_id if entry_id is not None else str(uuid4())
         self.title = title
         self.media_type = media_type
-                # important python concept = storing a collection of data inside an object
-                # this is in __init__ so that every time we create a new MediaEntry, each new object has its seperate alt_titles list
-                # if we put outsode the __init__ method, right above the "def __init__" line, it would become a class attr, which is different from a instance attr
-                # which, for example, would mean all objects would have the same list - if we add P5R to entry1, entry2 would also have it added aswell
-                # self.something = belongs to this specific OBJECT / ClassName.something = belongs to the class itself, to ALL objects
         self.alternative_titles = [] 
         self.cover_art = None # not in the obligatory params since it may not have one
+        
+        #
+        self.categories = []
+        self.custom_tags = []
+
+
 
     ## repr is a special method for debugging and inspecting
     def __repr__(self): #how a print of this a MediaEntry object should look like
@@ -47,3 +48,62 @@ class MediaEntry:
     ## another special method, how this object should look to a normal user
     def __str__(self):
         return self.title
+
+
+     ### practice functions (idk if it will be kept or not, depends)
+    def add_alternative_title(self, alt_title: str):
+        self.alternative_titles.append(alt_title)
+
+    def has_alternative_title(self, alt_title: str):
+        return alt_title in self.alternative_titles
+
+    def remove_alternative_title(self, alt_title: str):
+        if alt_title in self.alternative_titles:
+            self.alternative_titles.remove(alt_title)
+            return True
+        else:
+            return False
+
+    def alt_title_count(self):
+        return len(self.alternative_titles)
+
+        #####
+    def add_category(self, category: str):
+        if category not in self.categories:
+            self.categories.append(category)
+            return True
+        else:
+            return False 
+
+    def has_category(self, category: str):
+        return category in self.categories
+
+    def remove_category(self, category: str):
+        if category in self.categories:
+            self.categories.remove(category)
+            return True
+        else:
+            return False
+
+    def category_count(self):
+        return len(self.categories)
+
+        #####
+    def add_custom_tag(self, custom_tag: str):
+        if custom_tag not in self.custom_tags:
+            self.custom_tags.append(custom_tag)
+
+    def has_custom_tag(self, custom_tag: str):
+        return custom_tag in self.custom_tags
+
+    def remove_custom_tag(self, custom_tag: str):
+        if custom_tag in self.custom_tags:
+            self.custom_tags.remove(custom_tag)
+            return True
+        else:
+            return False
+
+    def custom_tag_count(self):
+        return len(self.custom_tags)
+
+    
