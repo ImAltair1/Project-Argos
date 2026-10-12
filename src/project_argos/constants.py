@@ -13,4 +13,9 @@ GAME_CATEGORIES = [
     "Simulation",
     "Sports",
     "Strategy",
+    "Puzzle",
+    "Rogue-like",
+    "Souls-like",
+    "Rhythm",
+    
 ]

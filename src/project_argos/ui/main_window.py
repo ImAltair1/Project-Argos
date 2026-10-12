@@ -46,6 +46,7 @@ class MainWindow(QMainWindow):
             GameEntry("Hades"),
         ]
 
+
         print(game_p5r.alternative_titles)
         print(game_p5r.has_alternative_title("P5R"))
         print(game_p5r.has_alternative_title("E33"))

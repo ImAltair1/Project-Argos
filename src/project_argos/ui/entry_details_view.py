@@ -9,7 +9,9 @@ from PySide6.QtWidgets import (
 )
 
 from project_argos.models.media_entry import MediaEntry
-from project_argos.ui.category_selector import CategorySelector
+from project_argos.ui.multi_select_list import MultiSelectList
+
+from project_argos.constants import GAME_CATEGORIES
 
 class EntryDetailsView(QWidget):
     back_requested = Signal()
@@ -30,11 +32,12 @@ class EntryDetailsView(QWidget):
         self.type_label = QLabel()
         
         
-        self.category_selector = CategorySelector()
+        self.category_selector = MultiSelectList(GAME_CATEGORIES)
         self.category_selector.hide() #hide the widget after initiating it | .delete() deletes the widget
         self.edit_categories_button = QPushButton("Edit categories")
-        self.category_selector.category_changed.connect(self.category_change)
+        self.category_selector.item_changed.connect(self.category_change)
         self.categories_label = QLabel()
+    
         
 
         self.custom_tags_input = QLineEdit()
@@ -45,6 +48,7 @@ class EntryDetailsView(QWidget):
         
         self.custom_tags_input.hide()
         self.add_custom_tag_button.hide()
+
 
         layout.addWidget(self.back_button)
 
@@ -57,7 +61,7 @@ class EntryDetailsView(QWidget):
         layout.addWidget(self.edit_categories_button)
         layout.addWidget(self.category_selector)
         
-
+        
         layout.addWidget(self.custom_tags_label)
         layout.addWidget(self.custom_tags_input)
         layout.addWidget(self.add_custom_tag_button)
@@ -91,7 +95,7 @@ class EntryDetailsView(QWidget):
             self.edit_categories_button.setText("Edit categories")
         else:
             #refresh the selected categories in case they were edited somewhere else
-            self.category_selector.set_selected_categories(
+            self.category_selector.set_selected_items(
                 self.entry.categories
             )
 
@@ -119,7 +123,7 @@ class EntryDetailsView(QWidget):
         self.type_label.setText(f"Type: {entry.media_type}")
 
         #Check if there are any already existing categories selected when loading, and select them
-        self.category_selector.set_selected_categories(entry.categories)
+        self.category_selector.set_selected_items(self.entry.categories)
         self.update_categories_label()
 
 
