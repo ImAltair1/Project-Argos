@@ -39,6 +39,8 @@ class MultiSelectList(QWidget):
         # run the function under to populate the list
         self.populate_items()
 
+
+
     def filter_options(self, search_text: str):
 
         for index in range(self.options_list.count()):
@@ -60,11 +62,13 @@ class MultiSelectList(QWidget):
 
 
     def populate_items(self):
-        for category in self.options:
-            item = QListWidgetItem(category) # creates one row item
+        self.options_list.clear() #the list will change during runtime so we need to clear it first
+
+        for option in sorted(self.options, key=str.casefold):
+            item = QListWidgetItem(option) # creates one row item
 
             # An item has a set of flags that describe what the user can do with it
-            # The item in this case is the category we just added to the list
+            # The item in this case is the option we just added to the list
             item.setFlags(
                 item.flags()
                 | Qt.ItemFlag.ItemIsUserCheckable #basically, we are saying its a checkable item
@@ -74,6 +78,7 @@ class MultiSelectList(QWidget):
             item.setCheckState(Qt.CheckState.Unchecked) #and the default check is "unchecked"
 
             self.options_list.addItem(item) # and then we add the row to the list
+
 
     def set_selected_items(self, selected_items):
         self.options_list.blockSignals(True) #makes it so doing these "load" categories setting doesnt
@@ -86,7 +91,7 @@ class MultiSelectList(QWidget):
 
         for category in selected_items:
             if category not in self.options:
-                raise ValueError("This category is not included in the GAME_CATEGORIES list")
+                raise ValueError(f"The item '{item}' is not included in the list given to MultiSelectList")
             
             items = self.options_list.findItems(
                                                 category,  #find this category in the category list

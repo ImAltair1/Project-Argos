@@ -57,6 +57,10 @@ class MainWindow(QMainWindow):
 
         print(game_p5r.alt_title_count())
 
+
+
+
+
         #Default window params
         self.setWindowTitle("Project Argos")
         self.resize(1280, 720)
@@ -109,7 +113,17 @@ class MainWindow(QMainWindow):
         # to create a library with the temporary date we created earlier.
 
             # Details view #
-        self.entry_details_page = EntryDetailsView()
+        self.available_custom_tags = sorted(
+                                                        {
+                                                            tag
+                                                            for entry in self.library_entries
+                                                            for tag in entry.custom_tags
+                                                        },
+                                                        key=str.casefold,
+                                                    )
+
+        self.entry_details_page = EntryDetailsView(
+                                                self.available_custom_tags)
 
 
 
