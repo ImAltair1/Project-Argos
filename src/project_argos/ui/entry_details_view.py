@@ -15,6 +15,7 @@ from project_argos.constants import GAME_CATEGORIES
 
 class EntryDetailsView(QWidget):
     back_requested = Signal()
+    custom_tag_removal_requested = Signal(str)
 
     def __init__(self, 
                  available_custom_tags: list[str] # available custom tags in general
@@ -50,7 +51,8 @@ class EntryDetailsView(QWidget):
         self.edit_custom_tags_button = QPushButton("Edit Custom Tags")
         self.edit_custom_tags_button.clicked.connect(self.toggle_custom_tags_editor)
 
-        self.custom_tags_selector = MultiSelectList(self.available_custom_tags)
+        self.custom_tags_selector = MultiSelectList(self.available_custom_tags, allow_removal=True,)
+        self.custom_tags_selector.remove_requested.connect(self.custom_tag_removal_requested)
         self.custom_tags_selector.item_changed.connect(self.custom_tag_change)
         self.custom_tags_selector.hide()
 
@@ -138,13 +140,18 @@ class EntryDetailsView(QWidget):
 
         self.update_custom_tags_label()
 
+
     #follows same pattern as category, basically makes the editor visible or not.
     def toggle_custom_tags_editor(self):
         if self.custom_tags_selector.isVisible():
             self.custom_tags_selector.hide()
             self.custom_tags_input.hide()
             self.add_custom_tag_button.hide()
+
+            self.edit_custom_tags_button.setText("Edit Custom Tags")
+
         else:
+            # Refresh available tags and current entry's selections
             self.custom_tags_selector.populate_items()
             self.custom_tags_selector.set_selected_items(
                 self.entry.custom_tags
@@ -153,6 +160,9 @@ class EntryDetailsView(QWidget):
             self.custom_tags_selector.show()
             self.custom_tags_input.show()
             self.add_custom_tag_button.show()
+
+            self.edit_custom_tags_button.setText("Done!")
+
 
     def add_custom_tag(self):
         
