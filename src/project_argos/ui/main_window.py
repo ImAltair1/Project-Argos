@@ -9,11 +9,13 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QWidget, #basic Qt widget that can act as a simple window
     QStackedWidget,
+    QMessageBox
 )
 
 from project_argos.models.game_entry import GameEntry
 from project_argos.ui.library_view import LibraryView
 from project_argos.ui.entry_details_view import EntryDetailsView
+from project_argos.models.media_library import MediaLibrary
 
 # creates a class representing our app window
 ## We will gradually use classes to represent meaningful parts of Argos, like 
@@ -32,19 +34,27 @@ class MainWindow(QMainWindow):
         print(game_p5r.categories)
         game_p5r.add_custom_tag("Persona series")
         print(game_p5r.custom_tags)
-
+        ############################################################################
+        game_firemb = GameEntry("Fire Emblem Shadow Dragon")
+        game_firemb.add_custom_tag("Fire Emblem Series")
+        game_firemb.cover_art = "test_assets/firemb_test_1.png"
+        ############################################################################
+        game_p4g = GameEntry("Persona 4 Golden")
+        game_p4g.add_custom_tag("Persona series")
+        game_p4g.cover_art = "test_assets/p4g_test_1.png"
 
         ## Test data for LibraryView
-        self.library_entries = [
+        entries = [
             game_p5r,
+            game_firemb,
+            game_p4g,
             GameEntry("Clair Obscur: Expedition 33"),
             GameEntry("Bastion"),
             GameEntry("Persona 3 Reload"),
-            GameEntry("Fire Emblem"),
-            GameEntry("The World Ends with You"),
             GameEntry("NieR:Automata"),
             GameEntry("Hades"),
         ]
+        self.media_library = MediaLibrary(entries=entries) # passing the entries to MediaLibrary class
 
         print(game_p5r.alternative_titles)
         print(game_p5r.has_alternative_title("P5R"))
@@ -55,6 +65,7 @@ class MainWindow(QMainWindow):
         print(game_p5r.alternative_titles)
 
         print(game_p5r.alt_title_count())
+
 
         #Default window params
         self.setWindowTitle("Project Argos")
@@ -103,13 +114,14 @@ class MainWindow(QMainWindow):
             
 
             # LIBRARY #
-        self.library_page = LibraryView(self.library_entries)
+        self.library_page = LibraryView(self.media_library.entries)
         # important line, we are using the LibraryView class from library_view.py
         # to create a library with the temporary date we created earlier.
 
             # Details view #
-        self.entry_details_page = EntryDetailsView()
 
+        self.entry_details_page = EntryDetailsView(self.media_library.available_custom_tags)
+        self.entry_details_page.custom_tag_removal_requested.connect(self.delete_custom_tag)
 
 
 
@@ -206,7 +218,26 @@ class MainWindow(QMainWindow):
         # inside entry, if back -» show library view function on bottom
         self.entry_details_page.back_requested.connect(self.show_library)
         
+    def delete_custom_tag(self, tag: str):
+        answer = QMessageBox.question(
+            self,
+            "Delete custom tag",
+            f"Delete '{tag}' from the library?\n\n"
+            "It will also be removed from every entry that uses it.",
+            QMessageBox.StandardButton.Yes
+            | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
 
+        if answer != QMessageBox.StandardButton.Yes:
+            return
+
+        self.media_library.remove_custom_tag(tag)
+
+        # Refresh the currently displayed entry
+        self.entry_details_page.set_entry(
+            self.entry_details_page.entry
+        )
 
 
     def show_library(self):
