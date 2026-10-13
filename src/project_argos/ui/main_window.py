@@ -12,11 +12,11 @@ from PySide6.QtWidgets import (
     QMessageBox
 )
 
-from project_argos.models.game_entry import GameEntry
+
 from project_argos.ui.library_view import LibraryView
 from project_argos.ui.entry_details_view import EntryDetailsView
 from project_argos.models.media_library import MediaLibrary
-
+from project_argos.demo_data import create_demo_entries
 # creates a class representing our app window
 ## We will gradually use classes to represent meaningful parts of Argos, like 
 ## main app window (this one), media entries, library views, review editors and database services
@@ -24,57 +24,16 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        game_p5r = GameEntry("Persona 5 Royal")
-        game_p5r.cover_art = "test_assets/p5r_test_1.png"
-        game_p5r.add_alternative_title("P5R")
-        game_p5r.add_alternative_title("P5S")
-
-        game_p5r.add_category("JRPG")
-        #game_p5r.add_category("JRPG")
-        print(game_p5r.categories)
-        game_p5r.add_custom_tag("Persona series")
-        print(game_p5r.custom_tags)
-        ############################################################################
-        game_firemb = GameEntry("Fire Emblem Shadow Dragon")
-        game_firemb.add_custom_tag("Fire Emblem Series")
-        game_firemb.cover_art = "test_assets/firemb_test_1.png"
-        ############################################################################
-        game_p4g = GameEntry("Persona 4 Golden")
-        game_p4g.add_custom_tag("Persona series")
-        game_p4g.cover_art = "test_assets/p4g_test_1.png"
-
-        ## Test data for LibraryView
-        entries = [
-            game_p5r,
-            game_firemb,
-            game_p4g,
-            GameEntry("Clair Obscur: Expedition 33"),
-            GameEntry("Bastion"),
-            GameEntry("Persona 3 Reload"),
-            GameEntry("NieR:Automata"),
-            GameEntry("Hades"),
-        ]
-        self.media_library = MediaLibrary(entries=entries) # passing the entries to MediaLibrary class
-
-        print(game_p5r.alternative_titles)
-        print(game_p5r.has_alternative_title("P5R"))
-        print(game_p5r.has_alternative_title("E33"))
-        
-        game_p5r.remove_alternative_title("P5S")
-        game_p5r.remove_alternative_title("E33")
-        print(game_p5r.alternative_titles)
-
-        print(game_p5r.alt_title_count())
-
+        # Test data 
+        entries = create_demo_entries()
+        self.media_library = MediaLibrary(entries=entries)
+    
 
         #Default window params
         self.setWindowTitle("Project Argos")
         self.resize(1280, 720)
 
-        # -------------------------
-        # Main application layout
-        # -------------------------
-        main_layout = QHBoxLayout()
+        
 
         # -------------------------
         # Sidebar
@@ -122,7 +81,7 @@ class MainWindow(QMainWindow):
 
         self.entry_details_page = EntryDetailsView(self.media_library.available_custom_tags)
         self.entry_details_page.custom_tag_removal_requested.connect(self.delete_custom_tag)
-
+        self.entry_details_page.custom_tag_creation_requested.connect(self.create_custom_tag)
 
 
             # TIME LINE #
@@ -218,6 +177,24 @@ class MainWindow(QMainWindow):
         # inside entry, if back -» show library view function on bottom
         self.entry_details_page.back_requested.connect(self.show_library)
         
+############ METHODS #####################
+    def create_custom_tag(self, tag: str):
+        added = self.media_library.add_custom_tag(tag)
+
+        if not added:
+            QMessageBox.information(
+                self,
+                "Custom tag already exists",
+                f"'{tag}' is already available in your library.",
+            )
+            return
+
+        # Refresh the current entry and available tags
+        self.entry_details_page.set_entry(
+            self.entry_details_page.entry
+        )
+
+
     def delete_custom_tag(self, tag: str):
         answer = QMessageBox.question(
             self,
@@ -254,52 +231,6 @@ class MainWindow(QMainWindow):
         self.entry_details_page.set_entry(entry)
         self.pages.setCurrentWidget(self.entry_details_page)
 
-    def show_library(self):
-        self.pages.setCurrentWidget(self.library_page)
 
 
-    # ### temporary
-    # game = GameEntry("Persona 5 Royal")
-    # print(game)
-    # print(repr(game))
-
-
-    # copy1 = GameCopy("PS4", "Physical", "Owned")
-    # copy2 = GameCopy("Switch", "Digital", "Owned")
-    # game.add_copy(copy1)
-    # game.add_copy(copy2)
-    # print(game.copies) ## uses repr
-    # print(game.copies[0]) ##uses str
     
-    
-    # game.alternative_titles.append("P5R")
-    # game.hours_played = 12.5
-    # print(game.alternative_titles)
-    # print(game.hours_played)
-
-
-    # session_copy1 = GameSession(
-    #     datetime(2026, 9, 25, 19, 0), datetime(2026, 9, 25, 21, 30),
-    #     copy1,
-    # )
-    # session_copy2 = GameSession(
-    #     datetime(2026, 9, 26, 19, 0), datetime(2026, 9, 26, 22, 30),
-    #     copy1,
-    # )
-    # print(f"{session_copy1.duration_hours()}h")
-    # print(f"{session_copy2.duration_hours()}h")
-    
-
-    # game.add_session(session_copy1)
-    # game.add_session(session_copy2)
-    # print(game.sessions)
-    # print(game.total_session_hours())
-    
-    
-    # print(game.id)
-    
-    # existing_id = "12345-example-id"
-    # game2 = GameEntry("Persona 4 Golden", existing_id)
-    # print(game2.id)
-    # ### temporary
-
