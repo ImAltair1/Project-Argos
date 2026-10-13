@@ -12,7 +12,7 @@ class MediaLibrary:
         
         
         # The entries belonging to this library
-        self.entries = entries if entries is not None else []
+        self.entries = list(entries) if entries is not None else []
 
         # The custom tags available throughout this library
         if available_custom_tags is not None:
@@ -52,6 +52,9 @@ class MediaLibrary:
         return True #return true when new tag is added or false when input is blank or tag already exists
 
     def remove_custom_tag(self, tag: str) -> bool:
+        #remove whitespace so that its consistent 
+        tag = tag.strip()
+
         # Find the existing tag, ignoring capitalization.
         existing_tag = next(
             (

@@ -16,7 +16,7 @@ class GameCopy:
     def __repr__(self):
         return (
             f"GameCopy("
-            f"id='{self.id}'"
+            f"id='{self.id}',"
             f"platform='{self.platform}', "
             f"format='{self.format}', "
             f"ownership_type='{self.ownership_type}'"
