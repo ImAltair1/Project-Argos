@@ -16,6 +16,7 @@ from project_argos.constants import GAME_CATEGORIES
 class EntryDetailsView(QWidget):
     back_requested = Signal()
     custom_tag_removal_requested = Signal(str)
+    custom_tag_creation_requested = Signal(str)
 
     def __init__(self, 
                  available_custom_tags: list[str] # available custom tags in general
@@ -61,7 +62,7 @@ class EntryDetailsView(QWidget):
         self.custom_tags_input.hide()
 
         self.add_custom_tag_button = QPushButton("Create Tag")
-        self.add_custom_tag_button.clicked.connect(self.add_custom_tag)
+        self.add_custom_tag_button.clicked.connect(self.request_custom_tag_creation)
         self.add_custom_tag_button.hide()
         
 
@@ -164,21 +165,16 @@ class EntryDetailsView(QWidget):
             self.edit_custom_tags_button.setText("Done!")
 
 
-    def add_custom_tag(self):
-        
-        # reads custom_tag input
-        tag = self.custom_tags_input.text().strip() #removes spaces
+    def request_custom_tag_creation(self):
+        # gets custom tags input and removes the blanks
+        tag = self.custom_tags_input.text().strip()
+
         if not tag:
             return
 
-        # Avoids duplicate tags, ignoring capitalization
-        if not any(existing.casefold() == tag.casefold() for existing in self.available_custom_tags):
-            self.available_custom_tags.append(tag)
-
-        self.custom_tags_selector.populate_items() #rebuild items list with new tag
-        self.custom_tags_selector.set_selected_items(self.entry.custom_tags) #refreshes the checklist since we modified the tags list
-
-        self.custom_tags_input.clear() #clear input
+        # clear input and emit creation request
+        self.custom_tags_input.clear()
+        self.custom_tag_creation_requested.emit(tag)
     
 
 
