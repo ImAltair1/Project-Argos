@@ -3,19 +3,46 @@
 
 # Categories list v0
 GAME_CATEGORIES = [
+    
     "Action",
     "Adventure",
+    "Arcade",
+    "Battle Royale",
+    "Beat 'em Up",
+    "Card / Deckbuilder",
+    "Casual",
+    "City Builder",
     "Fighting",
-    "FPS",
+    "First-Person Shooter (FPS)",
+    "Horror",
     "JRPG",
+    "Life Simulation",
+    "Management",
+    "Metroidvania",
+    "MMORPG",
+    "MOBA",
+    "Platformer",
+    "Point-and-Click",
+    "Puzzle",
     "Racing",
-    "RPG",
+    "Real-Time Strategy (RTS)",
+    "Rhythm",
+    "Roguelike / Roguelite",
+    "Role-Playing Game (RPG)",
+    "Sandbox",
     "Simulation",
     "Sports",
+    "Stealth",
     "Strategy",
-    "Puzzle",
-    "Rogue-like",
-    "Souls-like",
-    "Rhythm",
-    
+    "Survival",
+    "Tactical",
+    "Third-Person Shooter (TPS)",
+    "Tower Defense",
+    "Turn-Based ",
+    "Visual Novel",
+    "Walking Simulator",
+        
 ]
+
+
+

@@ -16,19 +16,7 @@ def create_demo_entries() -> list[GameEntry]:
     game_p4g.add_custom_tag("Persona series")
     game_p4g.cover_art = "test_assets/p4g_test_1.png"
 
-
-
-    ### test prints (will be removed)
-    print(game_p5r.alternative_titles)
-    print(game_p5r.has_alternative_title("P5R"))
-    print(game_p5r.has_alternative_title("E33"))
-        
-    game_p5r.remove_alternative_title("P5S")
-    game_p5r.remove_alternative_title("E33")
-    print(game_p5r.alternative_titles)
-
-    print(game_p5r.alt_title_count())
-
+    print("Demo data has been created!")
 
     return [
         game_p5r,

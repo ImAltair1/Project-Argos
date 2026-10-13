@@ -63,7 +63,7 @@ class MediaCard(QFrame):
         if self.entry.cover_art is None:
             artwork_path = (
                 Path(__file__).resolve().parent.parent
-                / "assets"
+                / "assets" / "ui"
                 / "no_artwork_test.jpg"
             )
         else:
