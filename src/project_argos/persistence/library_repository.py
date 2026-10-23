@@ -6,7 +6,8 @@ from project_argos.persistence.database import Database
 from project_argos.models.game_entry import GameEntry
 from project_argos.models.media_entry import MediaEntry
 from project_argos.models.game_copy import GameCopy
-
+from datetime import date, datetime
+from project_argos.models.game_session import GameSession
 
 class LibraryRepository:
     def __init__(self, database: Database): #receive database obj
@@ -132,6 +133,62 @@ class LibraryRepository:
                         )
 
 
+                # Collect the IDs of all sessions currently in the library.
+                current_session_ids = {
+                    session.id
+                    for entry in entries
+                    if isinstance(entry, GameEntry)
+                    for session in entry.sessions
+                }
+
+                # Remove sessions that no longer belong to the library.
+                stored_sessions = connection.execute(
+                    "SELECT id FROM game_sessions"
+                ).fetchall()
+
+                for row in stored_sessions:
+                    if row["id"] not in current_session_ids:
+                        connection.execute(
+                            "DELETE FROM game_sessions WHERE id = ?",
+                            (row["id"],),
+                        )
+
+                # Save the current sessions.
+                for entry in entries:
+                    if not isinstance(entry, GameEntry):
+                        continue
+
+                    for session in entry.sessions:
+                        connection.execute(
+                            """
+                            INSERT INTO game_sessions (
+                                id,
+                                copy_id,
+                                session_date,
+                                start_time,
+                                end_time,
+                                manual_duration_hours
+                            )
+                            VALUES (?, ?, ?, ?, ?, ?)
+                            ON CONFLICT(id) DO UPDATE SET
+                                copy_id = excluded.copy_id,
+                                session_date = excluded.session_date,
+                                start_time = excluded.start_time,
+                                end_time = excluded.end_time,
+                                manual_duration_hours = excluded.manual_duration_hours
+                            """,
+                            (
+                                session.id,
+                                session.game_copy.id,
+                                session.session_date.isoformat(),
+                                session.start_time.isoformat()
+                                if session.start_time is not None else None,
+                                session.end_time.isoformat()
+                                if session.end_time is not None else None,
+                                session.manual_duration_hours,
+                            ),
+                        )
+
 
                 ### POPULATE THE ALT TITLES TABLES
                 for entry in entries:
@@ -229,6 +286,10 @@ class LibraryRepository:
 
     # Populate Python side data from database
     def load_media_entries(self) -> list[MediaEntry]:
+        
+        copies_by_id = {}
+        entries_by_copy_id = {}
+
         connection = self.database.connect()
 
         try:
@@ -288,6 +349,50 @@ class LibraryRepository:
                     )
 
                     entry.add_copy(game_copy)
+                    copies_by_id[game_copy.id] = game_copy
+                    entries_by_copy_id[game_copy.id] = entry
+
+            # Load game sessions.
+            rows = connection.execute(
+                """
+                SELECT
+                    id,
+                    copy_id,
+                    session_date,
+                    start_time,
+                    end_time,
+                    manual_duration_hours
+                FROM game_sessions
+                ORDER BY session_date, start_time
+                """
+            ).fetchall()
+
+            for row in rows:
+                game_copy = copies_by_id.get(row["copy_id"])
+                entry = entries_by_copy_id.get(row["copy_id"])
+
+                # Skip records whose associated copy or game wasn't loaded.
+                if game_copy is None or entry is None:
+                    continue
+
+                session = GameSession(
+                    game_copy=game_copy,
+                    session_date=date.fromisoformat(row["session_date"]),
+                    start_time=(
+                        datetime.fromisoformat(row["start_time"])
+                        if row["start_time"] is not None
+                        else None
+                    ),
+                    end_time=(
+                        datetime.fromisoformat(row["end_time"])
+                        if row["end_time"] is not None
+                        else None
+                    ),
+                    manual_duration_hours=row["manual_duration_hours"],
+                    session_id=row["id"],
+                )
+
+                entry.add_session(session)
 
             # Load game-specific data
             rows = connection.execute(

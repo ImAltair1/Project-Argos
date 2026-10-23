@@ -109,6 +109,39 @@ class Database:
                         REFERENCES custom_tags(name)
                         ON DELETE CASCADE
                 );
+
+                CREATE TABLE IF NOT EXISTS game_sessions (
+                    id TEXT PRIMARY KEY,
+                    copy_id TEXT NOT NULL,
+                    session_date TEXT NOT NULL,
+                    start_time TEXT,
+                    end_time TEXT,
+                    manual_duration_hours REAL,
+
+                    FOREIGN KEY (copy_id)
+                        REFERENCES game_copies(id)
+                        ON DELETE CASCADE,
+
+                    CHECK (
+                        manual_duration_hours IS NULL
+                        OR manual_duration_hours >= 0
+                    ),
+
+                    CHECK (
+                        end_time IS NULL
+                        OR start_time IS NOT NULL
+                    ),
+
+                    CHECK (
+                        (start_time IS NOT NULL AND manual_duration_hours IS NULL)
+                        OR
+                        (
+                            start_time IS NULL
+                            AND end_time IS NULL
+                            AND manual_duration_hours IS NOT NULL
+                        )
+                    )
+                );
             """)
 
             connection.executemany( #executs the same SQL statement for each category

@@ -89,9 +89,20 @@ class MediaEntry:
         return len(self.categories)
 
         #####
-    def add_custom_tag(self, custom_tag: str):
-        if custom_tag not in self.custom_tags:
-            self.custom_tags.append(custom_tag)
+    def add_custom_tag(self, custom_tag: str) -> bool:
+        custom_tag = custom_tag.strip()
+
+        if not custom_tag:
+            return False
+
+        if any(
+            tag.casefold() == custom_tag.casefold()
+            for tag in self.custom_tags
+        ):
+            return False
+
+        self.custom_tags.append(custom_tag)
+        return True
 
     def has_custom_tag(self, custom_tag: str):
         return custom_tag in self.custom_tags

@@ -1,78 +1,127 @@
+
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from project_argos.demo_data import create_demo_entries
+from project_argos.models.game_copy import GameCopy
+from project_argos.models.media_library import MediaLibrary
 from project_argos.persistence.database import Database
 from project_argos.persistence.library_repository import LibraryRepository
-from project_argos.models.media_library import MediaLibrary
-from project_argos.models.game_copy import GameCopy
 
+from datetime import date, datetime
+from project_argos.models.game_session import GameSession
 
 with TemporaryDirectory() as folder:
+    # Create a temporary database for this test.
     database = Database(Path(folder) / "test.sqlite3")
     database.initialize()
-
-
     repository = LibraryRepository(database)
 
-    # Create demo data from demo_data.py and add to MediaLibrary
-    entries = create_demo_entries()
-    media_library = MediaLibrary(entries=entries)
-
-    p5r = next(
-        entry
-        for entry in media_library.entries
-        if entry.title == "Persona 5 Royal"
-    )
-
-    p5r.add_copy(
-        GameCopy(
-            platform="PC",
-            format="Digital",
-            ownership_type="Owned",
-        )
-    )
-    p5r.manual_hours_played = 120.5
-
-    # Test to see if unused custom tags remain available to be used
-    media_library.add_custom_tag("Comfort game")
-
-    # First, save all 8 entries.
-    repository.save_library(media_library)
-
-    print(
-        "Entries before deletion:",
-        len(repository.load_library().entries)
-    )
-
-    # Remove one entry from the library.
-    removed_entry = media_library.entries.pop()
-    print("Removing:", removed_entry.title)
-    print(
-        "Entries remaining in memory:",
-        len(media_library.entries)
-    )
-
-    # Save the updated library.
-    repository.save_library(media_library)
+    # Check that the expected tables exist.
     connection = database.connect()
+
     try:
-        rows = connection.execute(
-            "SELECT id, title FROM media_entries ORDER BY title"
-        ).fetchall()
-
-        print("Rows directly in database:", len(rows))
-
-        for row in rows:
-            print("-", row["title"])
-
+        tables = {
+            row["name"]
+            for row in connection.execute(
+                """
+                SELECT name
+                FROM sqlite_master
+                WHERE type = 'table'
+                """
+            ).fetchall()
+        }
     finally:
         connection.close()
 
+    expected_tables = {
+        "media_entries",
+        "alternative_titles",
+        "categories",
+        "entry_categories",
+        "custom_tags",
+        "entry_custom_tags",
+        "game_entries",
+        "game_copies",
+        "game_sessions",
+    }
+
+    assert expected_tables.issubset(tables), (
+        f"Missing database tables: {expected_tables - tables}"
+    )
+
+    # Create test data.
+    library = MediaLibrary(entries=create_demo_entries())
+
+    p5r = next(
+        entry
+        for entry in library.entries
+        if entry.title == "Persona 5 Royal"
+    )
+
+    p5r.manual_hours_played = 120.5
+
+    p5r_copy = GameCopy(
+        platform="PC",
+        format="Digital",
+        ownership_type="Owned",
+    )
+    p5r.add_copy(p5r_copy)
+
+    # Session with exact start and end times: 2.5 hours
+    p5r.add_session(
+        GameSession(
+            game_copy=p5r_copy,
+            start_time=datetime(2026, 10, 20, 19, 0),
+            end_time=datetime(2026, 10, 20, 21, 30),
+        )
+    )
+
+    # Historical session with a manually entered duration: 2 hours
+    p5r.add_session(
+        GameSession(
+            game_copy=p5r_copy,
+            session_date=date(2026, 10, 21),
+            manual_duration_hours=2.0,
+        )
+    )
 
 
-    # Load the library again.
+    # Test a shared tag that no entry uses.
+    library.add_custom_tag("Comfort game")
+
+    # Save and load the library.
+    repository.save_library(library)
+    connection = database.connect()
+    try:
+        rows = connection.execute(
+            """
+            SELECT
+                session_date,
+                start_time,
+                end_time,
+                manual_duration_hours
+            FROM game_sessions
+            ORDER BY session_date
+            """
+        ).fetchall()
+
+        print("Saved sessions:")
+
+        for row in rows:
+            print(
+                f"- Date: {row['session_date']}, "
+                f"Start: {row['start_time']}, "
+                f"End: {row['end_time']}, "
+                f"Manual duration: {row['manual_duration_hours']}"
+            )
+
+    finally:
+        connection.close()
     loaded_library = repository.load_library()
+
+    # Verify entries and relationships were restored.
+    assert len(loaded_library.entries) == 8
 
     loaded_p5r = next(
         entry
@@ -80,132 +129,48 @@ with TemporaryDirectory() as folder:
         if entry.title == "Persona 5 Royal"
     )
 
-    print(
-        "Loaded P5R manual playtime:",
-        loaded_p5r.manual_hours_played,
+    assert loaded_p5r.id == p5r.id
+    assert loaded_p5r.alternative_titles == ["P5R"]
+    assert loaded_p5r.categories == ["JRPG"]
+    assert "Persona series" in loaded_p5r.custom_tags
+    assert loaded_p5r.manual_hours_played == 120.5
+
+    assert len(loaded_p5r.sessions) == 2
+
+    loaded_durations = sorted(
+        session.duration_hours()
+        for session in loaded_p5r.sessions
     )
-    print("Loaded P5R copies:")
 
-    for game_copy in loaded_p5r.copies:
-        print(
-            f"- {game_copy.platform}, "
-            f"{game_copy.format}, "
-            f"{game_copy.ownership_type}"
-        )
+    assert loaded_durations == [2.0, 2.5]
 
-    print("Entries after deletion:", len(loaded_library.entries))
+    print("Loaded P5R session durations:", loaded_durations)
 
+    assert len(loaded_p5r.copies) == 1
 
-    connection = database.connect()
+    loaded_copy = loaded_p5r.copies[0]
 
-    try:
-        rows = connection.execute(
-            """
-            SELECT c.platform, c.format, c.ownership_type, e.title
-            FROM game_copies AS c
-            JOIN game_entries AS g ON g.entry_id = c.entry_id
-            JOIN media_entries AS e ON e.id = g.entry_id
-            """
-        ).fetchall()
+    assert loaded_copy.id == p5r_copy.id
+    assert loaded_copy.platform == "PC"
+    assert loaded_copy.format == "Digital"
+    assert loaded_copy.ownership_type == "Owned"
 
-        print("Saved game copies:")
+    assert "Comfort game" in loaded_library.available_custom_tags
+    assert not any(
+        "Comfort game" in entry.custom_tags
+        for entry in loaded_library.entries
+    )
 
-        for row in rows:
-            print(
-                f"- {row['title']}: {row['platform']}, "
-                f"{row['format']}, {row['ownership_type']}"
-            )
+    # Verify that deleting an entry is reflected in SQLite.
+    removed_entry = library.entries.pop()
+    repository.save_library(library)
 
-    finally:
-        connection.close()
+    library_after_deletion = repository.load_library()
 
+    assert len(library_after_deletion.entries) == 7
+    assert all(
+        entry.id != removed_entry.id
+        for entry in library_after_deletion.entries
+    )
 
-
-
-
-    loaded_entries = loaded_library.entries
-
-    print(f"Loaded {len(loaded_entries)} media entries:")
-    for entry in loaded_entries:
-        print(f"- {entry.title} ({type(entry).__name__})")
-
-    print("Loaded alternative titles:")
-    for entry in loaded_entries:
-        if entry.alternative_titles:
-            print(f"- {entry.title}: {', '.join(entry.alternative_titles)}")
-
-    print("Loaded categories:")
-    for entry in loaded_entries:
-        if entry.categories:
-            print(f"- {entry.title}: {', '.join(entry.categories)}")
-
-
-    print("Loaded custom tags:")
-    for entry in loaded_entries:
-        if entry.custom_tags:
-            print(f"- {entry.title}: {', '.join(entry.custom_tags)}")
-
-    print("All available custom tags:")
-    for tag in loaded_library.available_custom_tags:
-        print(f"- {tag}")
-
-
-
-    print("STARTING CONNECTION TO DATABASE")
-    # Read the saved rows directly from SQLite for verification
-    connection = database.connect()
-    print("DATABASE CONNECTED")
-    try:
-        rows = connection.execute(
-            """
-            SELECT e.title AS entry_title, a.title AS alternative_title
-            FROM alternative_titles AS a
-            JOIN media_entries AS e ON e.id = a.entry_id
-            ORDER BY e.title, a.position
-            """
-        ).fetchall()
-
-        print("Alternative titles:")
-        for row in rows:
-            print(f"- {row['entry_title']}: {row['alternative_title']}")
-
-        
-        rows = connection.execute(
-            """
-            SELECT e.title AS entry_title,
-                   ec.category_name AS category
-            FROM entry_categories AS ec
-            JOIN media_entries AS e ON e.id = ec.entry_id
-            ORDER BY e.title, ec.category_name
-            """
-        ).fetchall()
-
-        print("Entry categories:")
-        for row in rows:
-            print(f"- {row['entry_title']}: {row['category']}")
-
-
-        tags = connection.execute(
-            "SELECT name FROM custom_tags ORDER BY name"
-        ).fetchall()
-
-        print("Available custom tags:")
-        for row in tags:
-            print("-", row["name"])
-
-
-        assignments = connection.execute(
-            """
-            SELECT e.title AS entry_title, ect.tag_name AS tag
-            FROM entry_custom_tags AS ect
-            JOIN media_entries AS e ON e.id = ect.entry_id
-            ORDER BY e.title, ect.tag_name
-            """
-        ).fetchall()
-
-        print("Custom tag assignments:")
-        for row in assignments:
-            print(f"- {row['entry_title']}: {row['tag']}")
-
-    finally:
-        connection.close()
+    print("All database and repository checks passed!")
