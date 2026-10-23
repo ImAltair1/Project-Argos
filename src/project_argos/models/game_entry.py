@@ -12,7 +12,8 @@ class GameEntry(MediaEntry):
           # this line basically means: run the __init__ method of MediaEntry with these values
         super().__init__(title, 'game', entry_id) #as we can see, this is already a "game", which came with being a GameEntry
 
-        self.hours_played = 0.0
+        self.manual_hours_played: float | None = None
+        
         self.copies = [] #every GameEntry starts off with a empty list of copies 
         self.sessions = []
 

@@ -42,6 +42,32 @@ class Database:
                     cover_art TEXT
                 );
 
+                CREATE TABLE IF NOT EXISTS game_entries (
+                    entry_id TEXT PRIMARY KEY,
+                    manual_hours_played REAL,
+
+                    FOREIGN KEY (entry_id)
+                        REFERENCES media_entries(id)
+                        ON DELETE CASCADE,
+
+                    CHECK (
+                        manual_hours_played IS NULL
+                        OR manual_hours_played >= 0
+                    )
+                );
+
+                CREATE TABLE IF NOT EXISTS game_copies (
+                    id TEXT PRIMARY KEY,
+                    entry_id TEXT NOT NULL,
+                    platform TEXT NOT NULL,
+                    format TEXT NOT NULL,
+                    ownership_type TEXT NOT NULL,
+
+                    FOREIGN KEY (entry_id)
+                        REFERENCES game_entries(entry_id)
+                        ON DELETE CASCADE
+                );
+
                 CREATE TABLE IF NOT EXISTS alternative_titles (
                     entry_id TEXT NOT NULL,
                     position INTEGER NOT NULL,
@@ -82,6 +108,39 @@ class Database:
                     FOREIGN KEY (tag_name)
                         REFERENCES custom_tags(name)
                         ON DELETE CASCADE
+                );
+
+                CREATE TABLE IF NOT EXISTS game_sessions (
+                    id TEXT PRIMARY KEY,
+                    copy_id TEXT NOT NULL,
+                    session_date TEXT NOT NULL,
+                    start_time TEXT,
+                    end_time TEXT,
+                    manual_duration_hours REAL,
+
+                    FOREIGN KEY (copy_id)
+                        REFERENCES game_copies(id)
+                        ON DELETE CASCADE,
+
+                    CHECK (
+                        manual_duration_hours IS NULL
+                        OR manual_duration_hours >= 0
+                    ),
+
+                    CHECK (
+                        end_time IS NULL
+                        OR start_time IS NOT NULL
+                    ),
+
+                    CHECK (
+                        (start_time IS NOT NULL AND manual_duration_hours IS NULL)
+                        OR
+                        (
+                            start_time IS NULL
+                            AND end_time IS NULL
+                            AND manual_duration_hours IS NOT NULL
+                        )
+                    )
                 );
             """)
 
