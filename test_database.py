@@ -5,22 +5,124 @@ from project_argos.demo_data import create_demo_entries
 from project_argos.persistence.database import Database
 from project_argos.persistence.library_repository import LibraryRepository
 from project_argos.models.media_library import MediaLibrary
+from project_argos.models.game_copy import GameCopy
+
 
 with TemporaryDirectory() as folder:
     database = Database(Path(folder) / "test.sqlite3")
     database.initialize()
 
+
     repository = LibraryRepository(database)
 
+    # Create demo data from demo_data.py and add to MediaLibrary
     entries = create_demo_entries()
     media_library = MediaLibrary(entries=entries)
 
-    #test
+    p5r = next(
+        entry
+        for entry in media_library.entries
+        if entry.title == "Persona 5 Royal"
+    )
+
+    p5r.add_copy(
+        GameCopy(
+            platform="PC",
+            format="Digital",
+            ownership_type="Owned",
+        )
+    )
+    p5r.manual_hours_played = 120.5
+
+    # Test to see if unused custom tags remain available to be used
     media_library.add_custom_tag("Comfort game")
 
+    # First, save all 8 entries.
     repository.save_library(media_library)
 
+    print(
+        "Entries before deletion:",
+        len(repository.load_library().entries)
+    )
+
+    # Remove one entry from the library.
+    removed_entry = media_library.entries.pop()
+    print("Removing:", removed_entry.title)
+    print(
+        "Entries remaining in memory:",
+        len(media_library.entries)
+    )
+
+    # Save the updated library.
+    repository.save_library(media_library)
+    connection = database.connect()
+    try:
+        rows = connection.execute(
+            "SELECT id, title FROM media_entries ORDER BY title"
+        ).fetchall()
+
+        print("Rows directly in database:", len(rows))
+
+        for row in rows:
+            print("-", row["title"])
+
+    finally:
+        connection.close()
+
+
+
+    # Load the library again.
     loaded_library = repository.load_library()
+
+    loaded_p5r = next(
+        entry
+        for entry in loaded_library.entries
+        if entry.title == "Persona 5 Royal"
+    )
+
+    print(
+        "Loaded P5R manual playtime:",
+        loaded_p5r.manual_hours_played,
+    )
+    print("Loaded P5R copies:")
+
+    for game_copy in loaded_p5r.copies:
+        print(
+            f"- {game_copy.platform}, "
+            f"{game_copy.format}, "
+            f"{game_copy.ownership_type}"
+        )
+
+    print("Entries after deletion:", len(loaded_library.entries))
+
+
+    connection = database.connect()
+
+    try:
+        rows = connection.execute(
+            """
+            SELECT c.platform, c.format, c.ownership_type, e.title
+            FROM game_copies AS c
+            JOIN game_entries AS g ON g.entry_id = c.entry_id
+            JOIN media_entries AS e ON e.id = g.entry_id
+            """
+        ).fetchall()
+
+        print("Saved game copies:")
+
+        for row in rows:
+            print(
+                f"- {row['title']}: {row['platform']}, "
+                f"{row['format']}, {row['ownership_type']}"
+            )
+
+    finally:
+        connection.close()
+
+
+
+
+
     loaded_entries = loaded_library.entries
 
     print(f"Loaded {len(loaded_entries)} media entries:")

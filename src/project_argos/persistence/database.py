@@ -42,6 +42,32 @@ class Database:
                     cover_art TEXT
                 );
 
+                CREATE TABLE IF NOT EXISTS game_entries (
+                    entry_id TEXT PRIMARY KEY,
+                    manual_hours_played REAL,
+
+                    FOREIGN KEY (entry_id)
+                        REFERENCES media_entries(id)
+                        ON DELETE CASCADE,
+
+                    CHECK (
+                        manual_hours_played IS NULL
+                        OR manual_hours_played >= 0
+                    )
+                );
+
+                CREATE TABLE IF NOT EXISTS game_copies (
+                    id TEXT PRIMARY KEY,
+                    entry_id TEXT NOT NULL,
+                    platform TEXT NOT NULL,
+                    format TEXT NOT NULL,
+                    ownership_type TEXT NOT NULL,
+
+                    FOREIGN KEY (entry_id)
+                        REFERENCES game_entries(entry_id)
+                        ON DELETE CASCADE
+                );
+
                 CREATE TABLE IF NOT EXISTS alternative_titles (
                     entry_id TEXT NOT NULL,
                     position INTEGER NOT NULL,
